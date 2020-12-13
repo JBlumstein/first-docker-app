@@ -12,8 +12,10 @@ COPY requirements.txt /opt/
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r /opt/requirements.txt
 
-ENV AWS_KEY=default_key
-ENV AWS_SECRET=default_secret
+ARG aws_key
+ARG aws_secret
+ENV AWS_KEY=${aws_key}
+ENV AWS_SECRET=${aws_secret}
 ENV BUCKET_PATH=jblumstein-recsys
 ENV KEY_NAME=data/books/books_sample.csv
 ENV OPENBLAS_NUM_THREADS=1
