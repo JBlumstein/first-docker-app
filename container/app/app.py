@@ -14,8 +14,6 @@ aws_key = os.environ['AWS_KEY']
 aws_secret = os.environ['AWS_SECRET']
 BUCKET_PATH = os.environ['BUCKET_PATH']
 KEY_NAME = os.environ['KEY_NAME']
-print(aws_key)
-print(aws_secret)
 
 print('setting up client')
 client = boto3.client('s3', aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
