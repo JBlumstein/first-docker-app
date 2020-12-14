@@ -1,4 +1,5 @@
 #!/bin/bash
+source config
 
 # switch to container folder
 cd container
