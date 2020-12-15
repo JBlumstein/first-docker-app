@@ -1,6 +1,6 @@
 # Book recommender on ECS
 
-## Project Context
+## Project context
 
 For the last year, I've been a contractor for Equinox, a chain of fitness clubs based in NY and with locations around the world. One major ongoing initiative there is to build two apps: an iOS and Android-based general fitness application called Variis, and a SoulCycle (an Equinox brand) at-home stationary bike. 
 
@@ -18,7 +18,7 @@ In order to keep things simple, I chose *implicit* collaborative filtering, maki
 
 This project consisted of two main challenges: building the docker container, and posting it to ECR and running it on ECS. 
 
-The former proved much easier than the latter. To build the container that creates a model and saves it to a pickle file and then runs it in a docker container, all I needed to do was create a python file that did the work (app/container/app.py), a requirements file for the package imports I used (app/requirements.txt),a Dockerfile defining how to build the image (app/Dockerfile), a shell script to build the image locally and create a container to run the image in (local_build_docker.sh). I also created a config file to hold my environment variables (not submitted as it contains my AWS secrets) to hold environment variables used throughout the repo.
+The former proved much easier than the latter. To build an image for reading in data from S3, running a model, and saving it to S3 as a pickle file, and then runs it in a docker container, all I needed to do was create a python file that did the work (app/container/app.py), a requirements file for the package imports I used (app/requirements.txt),a Dockerfile defining how to build the image (app/Dockerfile), a shell script to build the image locally and create a container to run the image in (local_build_docker.sh). I also created a config file to hold my environment variables (not submitted as it contains my AWS secrets) to hold environment variables used throughout the repo.
 
 I'm going to hold off on going through my scripts for this part, as they are entirely non-cloud related.
 
@@ -57,4 +57,66 @@ Finally, I pushed my image to ECR:
 
 The toughest part, by a good margin, was figuring out how to run my image, now in ECR, on ECS. In order to simplify things, I used Fargate, but I still needed a fairly lengthy shell script, a json file, and a Python script to build a task definition, to get it done from the CLI.
 
-Let's dig
+Let's dig in to it:
+
+In my deploy_and_run_fargate.sh script, I had to take the following steps:
+
+Read in environment variables:
+    
+    source config
+
+Create a name for the container I would use later on for my task:
+
+    dtnow="`date +%Y%m%d%H%M%S`"
+    container_name_dt=$container_name-$dtnow
+
+Create an IAM role to execute my task:
+
+    aws iam --region $aws_region create-role --role-name $role_name --assume-role-policy-document file://task-execution-assume-role.json
+    aws iam --region $aws_region attach-role-policy --role-name $role_name --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+Fill out my task template, using a python script:
+    
+    python3 update_task_definition.py $container_name_dt
+
+The python script reads in my environment variables, gives them names during the script runtime, fills out the below dictionary, and saves it to a json file named updated_task_definition.json (not included here because it includes secrets).
+
+    template = {
+        "executionRoleArn": f"arn:aws:iam::{aws_account_id}:role/{role_name}",
+        "containerDefinitions": [{
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": log_group_name,
+                    "awslogs-region": aws_region,
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "image": f"{repo_image}/{repo_name}:{repo_tag}",
+            "name": container_name
+        }],
+        "memory": "8192",
+        "taskRoleArn": f"arn:aws:iam::{aws_account_id}:role/{role_name}",
+        "family": task_definition_name,
+        "requiresCompatibilities": ["FARGATE"],
+        "networkMode": "awsvpc",
+        "cpu": "2048"
+    }
+
+Create a cluster on ECS, putting it in Fargate mode so I don't have to deal with servers:
+    
+    aws ecs create-cluster --cluster-name $cluster_name --capacity-providers FARGATE 
+
+Create a log group on Cloudwatch:
+
+    aws logs create-log-group --log-group-name $log_group_name
+
+Register my task definition, using the json file that I created in my Python script:
+
+    aws ecs register-task-definition --cli-input-json file://updated_task_definition.json
+
+And run my task in my cluster, specifying that I was using Fargate and specifying the subnets and security groups for my VPC:
+
+    aws ecs run-task --launch-type FARGATE --task-definition $task_definition_name --cluster arn:aws:ecs:$aws_region:$aws_account_id:cluster/$cluster_name --network-configuration "awsvpcConfiguration={subnets=[$subnet1,$subnet2],securityGroups=[$security_group],assignPublicIp=ENABLED}"
+
+A lot of work to run my simple docker image on AWS, especially considering I did it in a "serverless" way! However, it was gratifying to see my task run successfully on command and to see a new Pickle file populate in S3.
