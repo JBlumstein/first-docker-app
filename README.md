@@ -20,7 +20,9 @@ This project consisted of two main challenges: building the docker container, an
 
 The former proved much easier than the latter. To build an image for reading in data from S3, running a model, and saving it to S3 as a pickle file, and then runs it in a docker container, all I needed to do was create a python file that did the work (app/container/app.py), a requirements file for the package imports I used (app/requirements.txt),a Dockerfile defining how to build the image (app/Dockerfile), a shell script to build the image locally and create a container to run the image in (local_build_docker.sh). I also created a config file to hold my environment variables (not submitted as it contains my AWS secrets) to hold environment variables used throughout the repo.
 
-I'm going to hold off on going through my scripts for this part, as they are entirely non-cloud related.
+I'm going to hold off on going through my scripts for this part, as they are entirely non-cloud related. The result of running the build looks like this though:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_docker_build.png?raw=true)
 
 ## Moving to the cloud
 
