@@ -1,5 +1,7 @@
 # Book recommender on ECS
 
+Long video link: https://youtu.be/KwbNRT5Vf6o
+
 ## Project context
 
 For the last year, I've been a contractor for Equinox, a chain of fitness clubs based in NY and with locations around the world. One major ongoing initiative there is to build two apps: an iOS and Android-based general fitness application called Variis, and a SoulCycle (an Equinox brand) at-home stationary bike. 
