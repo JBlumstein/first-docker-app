@@ -1,5 +1,7 @@
 # Book recommender on ECS
 
+Short video link: https://youtu.be/ysii7aRUld4
+
 Long video link: https://youtu.be/KwbNRT5Vf6o
 
 ## Project context
