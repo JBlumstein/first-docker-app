@@ -55,6 +55,10 @@ Finally, I pushed my image to ECR:
     
     docker push $repo_image/$repo_name:$repo_tag
 
+Here's my repo on ECR:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_ecr.png?raw=true)
+
 ### Running on ECS
 
 The toughest part, by a good margin, was figuring out how to run my image, now in ECR, on ECS. In order to simplify things, I used Fargate, but I still needed a fairly lengthy shell script, a json file, and a Python script to build a task definition, to get it done from the CLI.
@@ -109,6 +113,10 @@ Create a cluster on ECS, putting it in Fargate mode so I don't have to deal with
     
     aws ecs create-cluster --cluster-name $cluster_name --capacity-providers FARGATE 
 
+Here's what it the cluster looks like in the AWS console:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_ecs_cluster.png?raw=true)
+
 Create a log group on Cloudwatch:
 
     aws logs create-log-group --log-group-name $log_group_name
@@ -117,8 +125,20 @@ Register my task definition, using the json file that I created in my Python scr
 
     aws ecs register-task-definition --cli-input-json file://updated_task_definition.json
 
+In the AWS console, it looks like this:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_task_definition.png?raw=true)
+
 And run my task in my cluster, specifying that I was using Fargate and specifying the subnets and security groups for my VPC:
 
     aws ecs run-task --launch-type FARGATE --task-definition $task_definition_name --cluster arn:aws:ecs:$aws_region:$aws_account_id:cluster/$cluster_name --network-configuration "awsvpcConfiguration={subnets=[$subnet1,$subnet2],securityGroups=[$security_group],assignPublicIp=ENABLED}"
 
 A lot of work to run my simple docker image on AWS, especially considering I did it in a "serverless" way! However, it was gratifying to see my task run successfully on command and to see a new Pickle file populate in S3.
+
+Logs for the run:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_logs.png?raw=true)
+
+My output folder for the model in S3 after the run:
+
+![Alt text](https://github.com/JBlumstein/first-docker-app/blob/main/static/example_s3.png?raw=true)
