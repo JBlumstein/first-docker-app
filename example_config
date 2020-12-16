@@ -1,0 +1,17 @@
+aws_account_id=123456789012
+aws_region=us-east-1
+AWSAccessKeyId=LORUMIPSUMDOLOR12345
+AWSSecretKey=LORUMIPSUMDOLOR12345
+cluster_name=my-cluster-name
+container_name=my-container-name
+repo_image=123456789012.dkr.ecr.us-east-1.amazonaws.com
+repo_name=reponame
+repo_tag=latest
+role_name=ecsTaskExecutionRole
+task_definition_name=my-task-definition
+vpc=vpc-LORUMIPSUMDOLOR12345
+security_group=sg-LORUMIPSUMDOLOR12345
+subnet1=subnet-LORUMIPSUMDOLOR12345
+subnet2=subnet-LORUMIPSUMDOLOR54321
+service_name=my-service-name
+log_group_name=/ecs/my-task-definition
